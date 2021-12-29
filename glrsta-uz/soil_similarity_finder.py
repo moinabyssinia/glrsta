@@ -2,48 +2,52 @@
 """  
 Created on Tue Dec 28 13:33:00 2021
 
-Find similarities between strings
+This program finds the similarity between the soil types 
+from the nine counties to the 40 soil types from the 
+SFWMDFPLOS soil database 
 
 @author: Michael Tadesse
 
 """
 
-import difflib
 import os 
+import math 
+import re 
 import pandas as pd
+from cosine import get_result
 
 os.chdir("C:\\Users\\mtadesse\\Hazen and Sawyer\\"\
     "MIKE_Modeling_Group - Documents\\GLRSTA\\"\
             "gis\\UZ\\simplified_gridcodes")
 
-# print(os.listdir())
-
+# get data 
 dat_main = pd.read_csv("main.csv", header = None)
-dat_soils = pd.read_csv("fl127.csv")
-
-# print(dat_soils['muname'][46])
-print(dat_main[0])
-
-# print(difflib.SequenceMatcher(None, dat_soils['muname'][46], dat_main[0][27]).ratio())
-
-compareSimilarity = lambda x, y: difflib.SequenceMatcher(
-                        None, x, y).ratio()
-
+dat_soils = pd.read_csv("allSoilData_nine_counties.csv")
 
 
 dat_soils['soil_num'] = 'nan'
 dat_soils['soil_name'] = 'nan'
 
+
+# for ii in range(len(dat_soils)):
 for ii in range(len(dat_soils)):
-    print(ii)
-    comp_result = pd.DataFrame(list(map(compareSimilarity, 
-                        dat_soils['muname'][ii], dat_main[0])))
-    ind = comp_result[0].idxmax()
+    print(ii, "-", dat_soils['muname'][ii])
+    
+    result = []
+    
+    for jj in range(len(dat_main)):
+        comp_result = get_result(dat_soils['muname'][ii], dat_main[0][jj])
+        result.append(comp_result)
+    
+    result = pd.DataFrame(result)
+    ind = result[0].idxmax()
+    
     
     soil_name = dat_main[0][ind]
+    
     
     dat_soils['soil_num'][ii] = ind
     dat_soils['soil_name'][ii] = soil_name
 
 
-dat_soils[['muname', 'soil_num', 'soil_name']].to_csv('simplified_grid_codes.csv')
+dat_soils.to_csv('allSoilData_nine_counties_consolidated.csv')
